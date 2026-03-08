@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MATH TA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── 헤더 ── */
+    .app-header {
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      padding: 1.25rem 1.5rem;
+    }
+    .app-header-inner { max-width: 72rem; margin: 0 auto; }
+    .app-logo-pill {
+      font-family: 'Bebas Neue', system-ui;
+      letter-spacing: 0.18em;
+      font-size: 1.4rem;
+      padding: 0.2rem 0.95rem 0.1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.8);
+      text-transform: uppercase;
+    }
+
+    /* ── 메인 ── */
+    .app-main { padding: 1.5rem; }
+    .app-main-inner { max-width: 72rem; margin: 0 auto; }
+    .math-editor { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .math-editor-header h1 {
+      margin: 0;
+      font-family: 'Bebas Neue', system-ui;
+      font-size: 1.9rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .math-editor-header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .math-editor-shell {
+      border-radius: 1.25rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: radial-gradient(circle at top, rgba(255,255,255,0.04), #000);
+      padding: 1.25rem 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* ── 답변 양식 ── */
+    .template-section {
+      border-radius: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 0.85rem 1rem;
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .template-section-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+    }
+    .template-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .template-label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      white-space: nowrap;
+    }
+    .template-input {
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 0.3rem 0.6rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      width: 7rem;
+      transition: border-color 140ms ease;
+    }
+    .template-input:focus { outline: none; border-color: #fff; }
+    .template-input::placeholder { color: rgba(255,255,255,0.3); }
+    .template-preview-text {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* ── 양식 타입 토글 ── */
+    .tpl-type-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 0.18rem 0.65rem;
+      font-size: 0.75rem;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+    .tpl-type-btn.is-active { background: rgba(255,255,255,0.9); color: #000; border-color: rgba(255,255,255,0.9); }
+
+    /* ── 탭 ── */
+    .math-editor-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .math-editor-tab {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 0.35rem 0.95rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: #111;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+    }
+    .math-editor-tab.is-active { background: #fff; color: #000; border-color: #fff; }
+
+    /* ── 기호 그리드 ── */
+    .math-editor-toolbar {
+      border-radius: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.6);
+    }
+    .math-editor-symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+      gap: 0.4rem;
+    }
+    .math-symbol-button {
+      border-radius: 0.6rem;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: transparent;
+      color: #fff;
+      font-size: 1.2rem;
+      padding: 0.35rem 0.2rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 140ms ease, color 140ms ease, transform 80ms ease;
+    }
+    .math-symbol-button:hover { background: #fff; color: #000; }
+    .math-symbol-button:active { transform: scale(0.96); }
+
+    /* ── 스니펫 ── */
+    .math-editor-snippets { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .math-snippet-button {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: transparent;
+      color: #fff;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .math-snippet-button:hover { background: #fff; color: #000; }
+
+    /* ── 그리스 문자 ── */
+    .math-editor-quick-greek {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
+    }
+    .math-quick-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+    .math-quick-buttons { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .math-quick-button {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: transparent;
+      color: #fff;
+      font-size: 0.9rem;
+      padding: 0.25rem 0.55rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .math-quick-button:hover { background: #fff; color: #000; }
+
+    /* ── 함수 패널 ── */
+    .math-functions-panel {
+      border-radius: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 0.65rem 0.75rem 0.7rem;
+      background: rgba(0,0,0,0.6);
+    }
+    .math-functions-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; }
+    .math-functions-title { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.75); }
+    .math-functions-count { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+    .math-functions-empty { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    .math-functions-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+    .math-function-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .math-function-def { font-size: 0.8rem; }
+    .math-function-remove {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.6);
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.7rem;
+      padding: 0.1rem 0.55rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background-color 140ms ease, color 140ms ease;
+    }
+    .math-function-remove:hover { background: rgba(255,255,255,0.9); color: #000; }
+
+    /* ── 메인 입력 ── */
+    .math-editor-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 1rem;
+    }
+    .math-textarea-wrap { display: flex; flex-direction: column; gap: 0.5rem; position: relative; }
+    .math-textarea {
+      width: 100%;
+      min-height: 220px;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 0.9rem 1rem;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      font-size: 0.95rem;
+      resize: vertical;
+    }
+    .math-textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .math-textarea:focus { outline: none; border-color: #fff; }
+
+    .math-mode-badge {
+      position: absolute;
+      right: 0.9rem;
+      bottom: 3.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.7);
+      padding: 0.1rem 0.6rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.85);
+      color: rgba(255,255,255,0.85);
+      pointer-events: none;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+    .math-mode-badge.is-active { border-color: #fff; color: #fff; background: rgba(255,255,255,0.12); }
+
+    .math-editor-footer { display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; }
+    .math-bracket-button {
+      border-radius: 999px; border: 1px solid rgba(255,255,255,0.7);
+      background: transparent; color: #fff; padding: 0.35rem 0.9rem;
+      font-size: 0.8rem; cursor: pointer; font-family: inherit;
+      transition: background-color 140ms ease, color 140ms ease, transform 80ms ease;
+    }
+    .math-bracket-button:hover:not(:disabled) { background: #fff; color: #000; }
+    .math-bracket-button:active:not(:disabled) { transform: translateY(1px); }
+    .math-bracket-button:disabled { opacity: 0.4; cursor: default; }
+
+    .math-copy-button {
+      border-radius: 999px; border: 1px solid #fff;
+      background: #fff; color: #000; padding: 0.4rem 0.95rem;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background-color 140ms ease, transform 80ms ease;
+    }
+    .math-copy-button:hover:not(:disabled) { background: #e5e5e5; }
+    .math-copy-button:active:not(:disabled) { transform: translateY(1px); }
+    .math-copy-button:disabled { opacity: 0.4; cursor: default; }
+
+    .math-copy-status { color: rgba(255,255,255,0.6); margin-left: auto; }
+
+    /* ── 자동완성 ── */
+    .math-autocomplete {
+      position: absolute; left: 1rem; bottom: 3.6rem;
+      min-width: 240px; background: #000;
+      border-radius: 0.6rem; border: 1px solid rgba(255,255,255,0.9);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.8);
+      padding: 0.25rem 0; z-index: 10; display: none;
+    }
+    .math-autocomplete.is-open { display: block; }
+    .math-autocomplete-item {
+      width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem;
+      padding: 0.4rem 0.7rem; background: transparent; border: none;
+      color: #fff; cursor: pointer; text-align: left; font-family: inherit;
+      transition: background-color 120ms ease;
+    }
+    .math-autocomplete-item:hover { background: rgba(255,255,255,0.1); }
+    .math-autocomplete-label { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+    .math-autocomplete-def { font-size: 0.85rem; }
+
+    /* ── 미리보기 ── */
+    .math-preview { display: flex; flex-direction: column; gap: 0.4rem; }
+    .math-preview-label { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .math-preview-body {
+      flex: 1; border-radius: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: radial-gradient(circle at top, rgba(255,255,255,0.03), #050505);
+      padding: 0.9rem 1rem; min-height: 180px;
+    }
+    .math-preview-text {
+      margin: 0; white-space: pre-wrap; word-break: break-word;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 0.95rem;
+    }
+    .math-preview-placeholder { color: rgba(255,255,255,0.35); font-size: 0.9rem; }
+    .math-preview-template { color: rgba(255,255,255,0.45); }
+    .math-preview-content { color: #fff; }
+
+    /* ── 사용설명서 ── */
+    .guide-toggle {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      padding: 0.35rem 0.95rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+    .guide-toggle:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .guide-panel {
+      display: none;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.03);
+      padding: 1.2rem 1.25rem;
+      margin-top: 0.5rem;
+    }
+    .guide-panel.is-open { display: block; }
+    .guide-panel h3 {
+      margin: 0 0 0.6rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.04em;
+    }
+    .guide-panel h3:not(:first-child) { margin-top: 1.4rem; }
+    .guide-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .guide-table th {
+      text-align: left;
+      padding: 0.35rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.55);
+      font-weight: 500;
+    }
+    .guide-table td {
+      padding: 0.35rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.8);
+    }
+    .guide-table code {
+      background: rgba(255,255,255,0.1);
+      border-radius: 0.25rem;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.8rem;
+      font-family: 'SF Mono', Consolas, Menlo, 'Courier New', monospace;
+    }
+
+    /* ── 단축키 설정 UI ── */
+    .kb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .kb-table th {
+      text-align: left;
+      padding: 0.35rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.55);
+      font-weight: 500;
+    }
+    .kb-table td {
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.8);
+      vertical-align: middle;
+    }
+    .kb-row.is-capturing td { background: rgba(255,255,255,0.04); }
+    .kb-badge {
+      display: inline-block;
+      font-family: 'SF Mono', Consolas, Menlo, 'Courier New', monospace;
+      font-size: 0.78rem;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      color: #fff;
+      letter-spacing: 0.04em;
+      transition: background 200ms ease, border-color 200ms ease;
+    }
+    .kb-row.is-capturing .kb-badge {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.5);
+    }
+    .kb-capture-status {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      margin-left: 0.5rem;
+      font-style: italic;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .kb-change-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.72rem;
+      padding: 0.18rem 0.65rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+    .kb-change-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.7); }
+    .kb-change-btn.is-capturing { border-color: rgba(255,255,255,0.7); color: rgba(255,255,255,0.9); }
+    .kb-reset-btn {
+      margin-top: 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.72rem;
+      padding: 0.18rem 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 140ms ease, border-color 140ms ease;
+    }
+    .kb-reset-btn:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.5); }
+    .kb-hint {
+      margin: 0.5rem 0 0;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── 자동변환 설정 UI ── */
+    .wr-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .wr-table th {
+      text-align: left;
+      padding: 0.35rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.55);
+      font-weight: 500;
+    }
+    .wr-table td {
+      padding: 0.3rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.8);
+      vertical-align: middle;
+    }
+    .wr-add-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .wr-input {
+      border-radius: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 0.3rem 0.6rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      width: 7rem;
+      transition: border-color 140ms ease;
+    }
+    .wr-input:focus { outline: none; border-color: #fff; }
+    .wr-input::placeholder { color: rgba(255,255,255,0.3); }
+    .wr-add-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.72rem;
+      padding: 0.18rem 0.65rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+    .wr-add-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.7); }
+    .wr-del-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.7rem;
+      padding: 0.1rem 0.5rem;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+    .wr-del-btn:hover { background: rgba(255,80,80,0.12); color: rgba(255,160,160,0.9); border-color: rgba(255,100,100,0.4); }
+    .wr-reset-btn {
+      margin-top: 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.72rem;
+      padding: 0.18rem 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 140ms ease, border-color 140ms ease;
+    }
+    .wr-reset-btn:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.5); }
+    .wr-hint {
+      margin: 0.5rem 0 0;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.35);
+    }
+    .wr-error {
+      font-size: 0.75rem;
+      color: rgba(255,120,120,0.9);
+    }
+
+    /* ── 반응형 ── */
+    @media (max-width: 900px) {
+      .math-editor-main { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .math-editor-shell { padding: 1rem; }
+      .math-editor-header h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <span class="app-logo-pill">MATH TA</span>
+  </div>
+</header>
+
+<main class="app-main">
+  <div class="app-main-inner">
+    <section class="math-editor">
+
+      <div class="math-editor-header">
+        <h1>MATH INPUT</h1>
+        <p>수학 풀이를 빠르게 조합하는 흑백 입력기</p>
+      </div>
+
+      <div class="math-editor-shell">
+
+        <!-- ── 답변 양식 설정 ── -->
+        <div class="template-section">
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <span class="template-section-title">답변 양식</span>
+            <div style="display:flex;gap:0.3rem;margin-left:auto">
+              <button type="button" class="tpl-type-btn is-active" data-tpl="default">기본</button>
+              <button type="button" class="tpl-type-btn" data-tpl="requestion">재질문</button>
+            </div>
+          </div>
+          <!-- 기본 양식 -->
+          <div id="tplDefault" class="template-row">
+            <span class="template-label">안녕하세요</span>
+            <input id="studentName" class="template-input" placeholder="학생 이름" />
+            <span class="template-label">학생:)</span>
+            <input id="taName" class="template-input" placeholder="조교 이름" />
+            <span class="template-label">조교입니다.</span>
+          </div>
+          <!-- 재질문 양식 -->
+          <div id="tplRequestion" class="template-row" style="display:none">
+            <input id="requestionN" class="template-input" type="number" min="1" value="2" style="width:4rem;text-align:center" />
+            <span class="template-label">번째 질문 답변 드리겠습니다.</span>
+          </div>
+          <div class="template-preview-text" id="tplHint">
+            복사 시: 인사말 → 답변 내용 → 마무리 멘트가 자동으로 포함됩니다.
+          </div>
+        </div>
+
+        <!-- ── 탭 ── -->
+        <div class="math-editor-tabs" id="tabs" role="tablist"></div>
+
+        <!-- ── 기호 그리드 ── -->
+        <div class="math-editor-toolbar">
+          <div class="math-editor-symbol-grid" id="symbolGrid"></div>
+        </div>
+
+        <!-- ── 스니펫 ── -->
+        <div class="math-editor-snippets" id="snippets"></div>
+
+        <!-- ── 그리스 문자 빠른 입력 ── -->
+        <div class="math-editor-quick-greek">
+          <span class="math-quick-label">그리스 문자 빠른 복사</span>
+          <div class="math-quick-buttons" id="quickGreek"></div>
+        </div>
+
+        <!-- ── 저장된 함수 ── -->
+        <div class="math-functions-panel">
+          <div class="math-functions-header">
+            <span class="math-functions-title">저장된 함수</span>
+            <span class="math-functions-count" id="fnCount">0개</span>
+          </div>
+          <div id="fnBody">
+            <p class="math-functions-empty">f(x)= 형태로 입력하면 자동으로 저장됩니다.</p>
+          </div>
+        </div>
+
+        <!-- ── 입력 + 미리보기 ── -->
+        <div class="math-editor-main">
+          <div class="math-textarea-wrap">
+            <textarea id="textarea" class="math-textarea" placeholder="여기에 수학 풀이를 작성하세요..."></textarea>
+            <div class="math-mode-badge" id="modeBadge">일반</div>
+            <div class="math-editor-footer">
+              <button type="button" class="math-bracket-button" id="bracketBtn" disabled>괄호 정리</button>
+              <button type="button" class="math-copy-button" id="copyBtn" disabled>전체 복사</button>
+              <span class="math-copy-status" id="copyStatus">아직 내용이 없습니다</span>
+            </div>
+            <div class="math-autocomplete" id="autocomplete"></div>
+          </div>
+
+          <div class="math-preview">
+            <div class="math-preview-label">실시간 미리보기 (복사될 내용)</div>
+            <div class="math-preview-body" id="previewBody">
+              <span class="math-preview-placeholder">입력한 수학 풀이가 이 영역에 그대로 표시됩니다.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── 사용설명서 ── -->
+      <div style="text-align:right">
+        <button type="button" class="guide-toggle" id="guideToggle">사용설명서 ▼</button>
+      </div>
+      <div class="guide-panel" id="guidePanel">
+
+        <!-- 단축키 설정 (최상단) -->
+        <h3>⌨️ 단축키 설정</h3>
+        <table class="kb-table" id="kbTable">
+          <tr>
+            <th>동작</th>
+            <th>현재 단축키</th>
+            <th></th>
+          </tr>
+          <!-- JS로 렌더링 -->
+        </table>
+        <button type="button" class="kb-reset-btn" id="kbResetBtn">기본값으로 초기화</button>
+        <p class="kb-hint">변경 버튼 클릭 후 원하는 키 조합을 누르세요. Esc로 취소.</p>
+
+        <h3>첨자 입력</h3>
+        <table class="guide-table">
+          <tr><th>단축키</th><th>동작</th></tr>
+          <tr><td id="guideSupKey"><code>Shift + ^</code></td><td>위첨자 모드 진입 → 숫자·영문이 ⁰¹²ᵃᵇ 등으로 변환</td></tr>
+          <tr><td id="guideSubKey"><code>Shift + _</code></td><td>아래첨자 모드 진입 → 숫자·영문이 ₀₁₂ₐₑ 등으로 변환</td></tr>
+          <tr><td><code>Space</code> / <code>Enter</code> / <code>Tab</code></td><td>일반 모드로 복귀</td></tr>
+        </table>
+
+        <h3>🔤 자동변환 설정</h3>
+        <div id="wrTable"></div>
+        <div class="wr-add-row">
+          <input id="wrKey" class="wr-input" placeholder="단어 (예: approx)" maxlength="30" />
+          <span style="color:rgba(255,255,255,0.45);font-size:0.85rem">→</span>
+          <input id="wrVal" class="wr-input" placeholder="기호 (예: ≈)" maxlength="10" />
+          <button type="button" class="wr-add-btn" id="wrAddBtn">추가</button>
+          <span class="wr-error" id="wrError"></span>
+        </div>
+        <button type="button" class="wr-reset-btn" id="wrResetBtn">기본값으로 초기화</button>
+        <p class="wr-hint">스페이스 입력 시 단어 → 기호로 자동 변환됩니다. 원하는 항목을 추가·삭제할 수 있고, 자동으로 저장됩니다.<br/>기본 제공: pi→π, theta→θ, alpha→α, sigma→Σ, inf→∞, therefore→∴, because→∵ 등</p>
+
+        <h3>자동 괄호 (스페이스 또는 ( 입력 시)</h3>
+        <table class="guide-table">
+          <tr><th>입력</th><th>결과</th><th>설명</th></tr>
+          <tr><td><code>sin</code></td><td>sin(</td><td>커서가 괄호 안에 위치</td></tr>
+          <tr><td><code>cos</code></td><td>cos(</td><td>cos, tan, log, ln, lim, max, min 동일</td></tr>
+          <tr><td><code>sqrt</code> 또는 <code>root</code></td><td>√(</td><td>루트 기호 + 자동 괄호</td></tr>
+          <tr><td><code>int</code></td><td>∫(</td><td>적분 기호 + 자동 괄호</td></tr>
+          <tr><td><code>abs</code></td><td>| |</td><td>절댓값, 커서가 사이에 위치</td></tr>
+          <tr><td><code>f</code>, <code>g'</code> 등</td><td>f(, g'(</td><td>f, g, h, p, q + 프라임(') → 자동 괄호</td></tr>
+        </table>
+
+        <h3>함수 정의 및 자동완성</h3>
+        <table class="guide-table">
+          <tr><th>동작</th><th>설명</th></tr>
+          <tr><td><code>f(x) = 2x + 3</code> 입력</td><td>함수가 자동 파싱되어 패널에 저장됨</td></tr>
+          <tr><td>이후 <code>f(</code> 입력</td><td>자동완성 드롭다운 표시</td></tr>
+          <tr><td><code>Tab</code> 또는 클릭</td><td>자동완성 적용 → <code>f(x) = 2x + 3</code> 삽입</td></tr>
+          <tr><td><code>Esc</code></td><td>자동완성 닫기</td></tr>
+        </table>
+
+        <h3>기타</h3>
+        <table class="guide-table">
+          <tr><th>기능</th><th>설명</th></tr>
+          <tr><td>괄호 정리</td><td>안쪽부터 ( ) → { } → [ ] 순으로 자동 분류</td></tr>
+          <tr><td>전체 복사</td><td>인사말 + 답변 + 마무리 멘트 포함하여 클립보드에 복사</td></tr>
+          <tr><td>학생/조교 이름</td><td>상단에 입력하면 복사 시 양식에 반영 (자동 저장)</td></tr>
+          <tr><td>기호 버튼</td><td>탭에서 기호 클릭 시 커서 위치에 삽입</td></tr>
+        </table>
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   MATH TA v3 — 최종 배포판 (Mac + Windows 호환, 단축키 커스텀)
+   ═══════════════════════════════════════════════════════════════ */
+
+// ── 상수 ─────────────────────────────────────────────────────
+
+const TAB_CONFIG = [
+  { id:'sup',   label:'위첨자',     symbols:'⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾'.split('') },
+  { id:'sub',   label:'아래첨자',   symbols:'₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎'.split('') },
+  { id:'greek', label:'그리스문자', symbols:'αβγδεθλμπσφωΔΣΦΩ'.split('') },
+  { id:'ops',   label:'연산·관계',  symbols:'±∓×÷∙√∑∏∫≈≠≡≤≥≪≫'.split('') },
+  { id:'set',   label:'집합·논리',  symbols:'∈∉⊂⊃⊆⊇∪∩∅∀∃¬⇒⇔∴∵'.split('') },
+  { id:'arrow', label:'화살표·기타',symbols:'→←⇒⇐↔⇔↑↓↦∞∝⊥≒≜'.split('') },
+]
+
+const SNIPPETS = [
+  'r₁ = r₂', '∴ ', '∵ ',
+  '피타고라스 정리에 의해, ',
+  '사인법칙에 의해, ',
+  '코사인법칙에 의해, ',
+]
+
+const QUICK_GREEK = 'πθαβγδΣωφλ'.split('')
+
+const SUP = {
+  '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+  '+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾',
+  a:'ᵃ',b:'ᵇ',c:'ᶜ',d:'ᵈ',e:'ᵉ',f:'ᶠ',g:'ᵍ',h:'ʰ',i:'ⁱ',j:'ʲ',
+  k:'ᵏ',l:'ˡ',m:'ᵐ',n:'ⁿ',o:'ᵒ',p:'ᵖ',r:'ʳ',s:'ˢ',t:'ᵗ',u:'ᵘ',v:'ᵛ',w:'ʷ',x:'ˣ',y:'ʸ',z:'ᶻ',
+}
+
+const SUB_MAP = {
+  '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉',
+  '+':'₊','-':'₋','=':'₌','(':'₍',')':'₎',
+  a:'ₐ',e:'ₑ',h:'ₕ',i:'ᵢ',j:'ⱼ',k:'ₖ',l:'ₗ',m:'ₘ',n:'ₙ',o:'ₒ',p:'ₚ',r:'ᵣ',s:'ₛ',t:'ₜ',u:'ᵤ',v:'ᵥ',x:'ₓ',
+}
+
+const DEFAULT_WORD_REPLACE = {
+  pi:'π', theta:'θ', alpha:'α', beta:'β', gamma:'γ', delta:'δ',
+  sigma:'Σ', omega:'ω', phi:'φ', lambda:'λ', mu:'μ', nu:'ν',
+  eta:'η', kappa:'κ', xi:'ξ', rho:'ρ', tau:'τ', zeta:'ζ',
+  inf:'∞', therefore:'∴', because:'∵',
+  Delta:'Δ', Omega:'Ω', Phi:'Φ',
+  Theta:'Θ', Pi:'Π', Gamma:'Γ', Lambda:'Λ',
+}
+
+let WORD_REPLACE = {}
+
+const AUTO_PAREN_SPACE = new Set(['sin','cos','tan','log','ln','lim','max','min','sqrt','root','abs','int'])
+const FUNC_LETTERS = new Set('fghpqFGHPQ'.split(''))
+
+// localStorage 키 (새 파일 기준 — 이전 테스트 데이터와 분리)
+const SK_FN  = 'mathta-v3-functions'
+const SK_TPL = 'mathta-v3-template'
+const SK_KB  = 'mathta-v3-keybindings'
+const SK_WR  = 'mathta-v3-wordreplace'
+
+// ── 기본 단축키 정의 ─────────────────────────────────────────
+
+const DEFAULT_KB = {
+  sup: { key: '^', shiftKey: true,  ctrlKey: false, altKey: false, label: '위첨자 모드' },
+  sub: { key: '_', shiftKey: true,  ctrlKey: false, altKey: false, label: '아래첨자 모드' },
+}
+
+// ── 상태 ─────────────────────────────────────────────────────
+
+let mode         = 'normal'
+let activeTab    = 'sup'
+let funcs        = []
+let acItems      = []
+let acOpen       = false
+let KB           = {}      // 현재 적용 중인 단축키
+let capturing    = null    // null | 'sup' | 'sub'
+let templateType = 'default'  // 'default' | 'requestion'
+
+// ── Undo 스택 ─────────────────────────────────────────────────
+const undoStack = []
+let   isUndoing = false
+const MAX_UNDO  = 100
+
+// ── DOM ──────────────────────────────────────────────────────
+
+const $ = (id) => document.getElementById(id)
+const ta          = $('textarea')
+const badge       = $('modeBadge')
+const bracketBtn  = $('bracketBtn')
+const copyBtn     = $('copyBtn')
+const copyStatus  = $('copyStatus')
+const acBox       = $('autocomplete')
+const previewBody = $('previewBody')
+const studentIn   = $('studentName')
+const taNameIn    = $('taName')
+
+// ── 유틸 ─────────────────────────────────────────────────────
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;')
+}
+
+function setCaret(pos) {
+  requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(pos, pos) })
+}
+
+function pushUndo() {
+  if (isUndoing) return
+  undoStack.push({ value: ta.value, caret: ta.selectionStart ?? 0 })
+  if (undoStack.length > MAX_UNDO) undoStack.shift()
+}
+
+function doUndo(e) {
+  if (undoStack.length === 0) return
+  e.preventDefault()
+  isUndoing = true
+  const { value, caret } = undoStack.pop()
+  ta.value = value
+  setCaret(caret)
+  parseFuncs(ta.value)
+  syncUI()
+  isUndoing = false
+}
+
+function setVal(v, caret) {
+  pushUndo()
+  ta.value = v
+  setCaret(caret)
+  syncUI()
+}
+
+function insertAt(text) {
+  const s = ta.selectionStart, e = ta.selectionEnd
+  const before = ta.value.slice(0, s), after = ta.value.slice(e)
+  setVal(before + text + after, s + text.length)
+}
+
+function getBeforeAfter() {
+  const c = ta.selectionStart ?? ta.value.length
+  return { cursor: c, before: ta.value.slice(0, c), after: ta.value.slice(c) }
+}
+
+function lastWord(before) {
+  const m = before.match(/([a-zA-Z][a-zA-Z0-9_]*)$/)
+  return m ? m[1] : null
+}
+
+// ── 단축키 포맷 ──────────────────────────────────────────────
+
+function formatKey(kb) {
+  const parts = []
+  if (kb.ctrlKey)  parts.push('Ctrl')
+  if (kb.altKey)   parts.push('Alt')
+  if (kb.shiftKey) parts.push('Shift')
+  const k = kb.key === ' ' ? 'Space' : kb.key
+  parts.push(k)
+  return parts.join(' + ')
+}
+
+function matchesBinding(e, kb) {
+  return e.key === kb.key
+    && !!e.shiftKey === !!kb.shiftKey
+    && !!e.ctrlKey  === !!kb.ctrlKey
+    && !!e.altKey   === !!kb.altKey
+}
+
+// ── 단축키 로드/저장 ─────────────────────────────────────────
+
+function loadKeybindings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SK_KB) || '{}')
+    KB = {
+      sup: { ...DEFAULT_KB.sup, ...(saved.sup || {}) },
+      sub: { ...DEFAULT_KB.sub, ...(saved.sub || {}) },
+    }
+  } catch {
+    KB = { sup: { ...DEFAULT_KB.sup }, sub: { ...DEFAULT_KB.sub } }
+  }
+}
+
+function saveKeybindings() {
+  try { localStorage.setItem(SK_KB, JSON.stringify({ sup: KB.sup, sub: KB.sub })) } catch {}
+}
+
+// ── 단축키 설정 UI 렌더링 ────────────────────────────────────
+
+function renderKeybindings() {
+  const table = $('kbTable')
+  // 헤더 행 고정
+  const header = '<tr><th>동작</th><th>현재 단축키</th><th></th></tr>'
+  const rows = ['sup', 'sub'].map(id => {
+    const kb = KB[id]
+    const isCapturing = capturing === id
+    const btnLabel = isCapturing ? '취소' : '변경'
+    const capStatus = isCapturing
+      ? '<span class="kb-capture-status">키를 누르세요...</span>' : ''
+    return `
+      <tr class="kb-row${isCapturing ? ' is-capturing' : ''}" data-kb-id="${id}">
+        <td>${kb.label}</td>
+        <td>
+          <span class="kb-badge">${esc(formatKey(kb))}</span>
+          ${capStatus}
+        </td>
+        <td style="text-align:right">
+          <button type="button" class="kb-change-btn${isCapturing ? ' is-capturing' : ''}"
+                  data-kb-btn="${id}">${btnLabel}</button>
+        </td>
+      </tr>`
+  }).join('')
+  table.innerHTML = header + rows
+
+  // 사용설명서 첨자 행도 업데이트
+  const supCell = $('guideSupKey')
+  const subCell = $('guideSubKey')
+  if (supCell) supCell.innerHTML = `<code>${esc(formatKey(KB.sup))}</code>`
+  if (subCell) subCell.innerHTML = `<code>${esc(formatKey(KB.sub))}</code>`
+}
+
+// ── 단축키 변경 버튼 이벤트 ─────────────────────────────────
+
+$('kbTable').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-kb-btn]')
+  if (!btn) return
+  const id = btn.dataset.kbBtn
+
+  if (capturing === id) {
+    // 취소
+    capturing = null
+  } else {
+    // 캡처 시작
+    capturing = id
+    ta.blur() // textarea에서 포커스 제거 (키 충돌 방지)
+  }
+  renderKeybindings()
+})
+
+$('kbResetBtn').addEventListener('click', () => {
+  capturing = null
+  KB = { sup: { ...DEFAULT_KB.sup }, sub: { ...DEFAULT_KB.sub } }
+  saveKeybindings()
+  renderKeybindings()
+})
+
+// ── 캡처 이벤트 (document 레벨) ──────────────────────────────
+
+document.addEventListener('keydown', (e) => {
+  if (!capturing) return
+
+  // Esc → 취소
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    capturing = null
+    renderKeybindings()
+    return
+  }
+
+  // 단독 modifier 키는 무시
+  if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return
+
+  e.preventDefault()
+  KB[capturing] = {
+    ...KB[capturing],
+    key:      e.key,
+    shiftKey: e.shiftKey,
+    ctrlKey:  e.ctrlKey,
+    altKey:   e.altKey,
+  }
+  capturing = null
+  saveKeybindings()
+  renderKeybindings()
+}, true) // capture phase — textarea keydown보다 먼저 처리
+
+// ── 자동변환 로드/저장 ────────────────────────────────────────
+
+function loadWordReplace() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SK_WR) || 'null')
+    WORD_REPLACE = (saved && typeof saved === 'object' && !Array.isArray(saved))
+      ? saved
+      : { ...DEFAULT_WORD_REPLACE }
+  } catch {
+    WORD_REPLACE = { ...DEFAULT_WORD_REPLACE }
+  }
+}
+
+function saveWordReplace() {
+  try { localStorage.setItem(SK_WR, JSON.stringify(WORD_REPLACE)) } catch {}
+}
+
+// ── 자동변환 설정 UI 렌더링 ──────────────────────────────────
+
+function renderWordReplace() {
+  const container = $('wrTable')
+  if (!container) return
+  const entries = Object.entries(WORD_REPLACE)
+  if (entries.length === 0) {
+    container.innerHTML = '<p style="font-size:0.8rem;color:rgba(255,255,255,0.4);margin:0.3rem 0">등록된 변환이 없습니다.</p>'
+    return
+  }
+  const CODE = (s) => `<code style="background:rgba(255,255,255,0.1);border-radius:.25rem;padding:.1rem .35rem;font-family:'SF Mono',Consolas,Menlo,'Courier New',monospace;font-size:.8rem">${esc(s)}</code>`
+  container.innerHTML =
+    '<table class="wr-table"><tr><th>단어</th><th>결과</th><th></th></tr>' +
+    entries.map(([k, v]) =>
+      `<tr><td>${CODE(k)}</td><td>${esc(v)}</td><td style="text-align:right"><button type="button" class="wr-del-btn" data-wr-del="${esc(k)}">삭제</button></td></tr>`
+    ).join('') +
+    '</table>'
+}
+
+// ── 자동변환 설정 UI 이벤트 ──────────────────────────────────
+
+$('wrTable').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-wr-del]')
+  if (!btn) return
+  const key = btn.dataset.wrDel
+  delete WORD_REPLACE[key]
+  saveWordReplace()
+  renderWordReplace()
+})
+
+$('wrAddBtn').addEventListener('click', () => {
+  const keyEl = $('wrKey'), valEl = $('wrVal'), errEl = $('wrError')
+  const k = keyEl.value.trim(), v = valEl.value.trim()
+  if (!k) { errEl.textContent = '단어를 입력하세요.'; return }
+  if (!v) { errEl.textContent = '기호를 입력하세요.'; return }
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(k)) { errEl.textContent = '영문자로 시작하는 영문/숫자만 가능합니다.'; return }
+  errEl.textContent = ''
+  WORD_REPLACE[k] = v
+  saveWordReplace()
+  renderWordReplace()
+  keyEl.value = ''; valEl.value = ''
+  keyEl.focus()
+})
+
+$('wrKey').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('wrVal').focus() } })
+$('wrVal').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('wrAddBtn').click() } })
+
+$('wrResetBtn').addEventListener('click', () => {
+  if (!confirm('자동변환 목록을 기본값으로 초기화할까요?')) return
+  WORD_REPLACE = { ...DEFAULT_WORD_REPLACE }
+  saveWordReplace()
+  renderWordReplace()
+})
+
+// ── 답변 양식 ────────────────────────────────────────────────
+
+function buildFinalText() {
+  if (templateType === 'requestion') {
+    const n = $('requestionN')?.value || '2'
+    return `${n} 번째 질문 답변 드리겠습니다.\n\n${ta.value}\n\n해당 질문과 관련하여 더 궁금한 점이 있으시다면 언제든 댓글로 재질문해 주시기 바랍니다 :)`
+  }
+  const sn = studentIn.value.trim() || '**'
+  const tn = taNameIn.value.trim() || '***'
+  return `안녕하세요 ${sn} 학생:) ${tn} 조교입니다.\n\n${ta.value}\n\n해당 질문과 관련하여 궁금한 점 있으시면 언제든 재질문 해주세요:)`
+}
+
+function loadTemplate() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SK_TPL) || '{}')
+    if (d.student) studentIn.value = d.student
+    if (d.ta) taNameIn.value = d.ta
+    if (d.templateType) templateType = d.templateType
+    if (d.requestionN)  $('requestionN').value = d.requestionN
+  } catch {}
+}
+
+function saveTemplate() {
+  try {
+    localStorage.setItem(SK_TPL, JSON.stringify({
+      student: studentIn.value,
+      ta: taNameIn.value,
+      templateType,
+      requestionN: $('requestionN')?.value || '2',
+    }))
+  } catch {}
+}
+
+function applyTemplateType() {
+  const isReq = templateType === 'requestion'
+  $('tplDefault').style.display    = isReq ? 'none' : ''
+  $('tplRequestion').style.display = isReq ? ''     : 'none'
+  document.querySelectorAll('.tpl-type-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.tpl === templateType)
+  })
+  const hint = $('tplHint')
+  if (hint) hint.textContent = isReq
+    ? '복사 시: N번째 질문 머리말 → 답변 내용 → 재질문 안내가 포함됩니다.'
+    : '복사 시: 인사말 → 답변 내용 → 마무리 멘트가 자동으로 포함됩니다.'
+}
+
+studentIn.addEventListener('input', () => { saveTemplate(); syncUI() })
+taNameIn.addEventListener('input',  () => { saveTemplate(); syncUI() })
+
+document.querySelectorAll('.tpl-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    templateType = btn.dataset.tpl
+    applyTemplateType()
+    saveTemplate()
+    syncUI()
+  })
+})
+
+$('requestionN').addEventListener('input', () => { saveTemplate(); syncUI() })
+
+// ── localStorage (함수) ──────────────────────────────────────
+
+function loadFuncs() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SK_FN) || '[]')
+    if (Array.isArray(d)) funcs = d
+  } catch {}
+}
+
+function saveFuncs() {
+  try { localStorage.setItem(SK_FN, JSON.stringify(funcs)) } catch {}
+}
+
+// ── 함수 파싱 ────────────────────────────────────────────────
+
+const FN_RE = /^([a-zA-Z][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*=\s*(.+)$/u
+
+function parseFuncs(text) {
+  const map = {}
+  funcs.forEach(fn => { map[fn.name] = fn })
+  for (const raw of text.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    const m = line.match(FN_RE)
+    if (!m) continue
+    const [, name, params, rawBody] = m
+    const body = rawBody.trim().replace(/\s*[\uAC00-\uD7AF\u3131-\u3163][\uAC00-\uD7AF\u3131-\u3163\s,.:;!?]*$/u, '').trim()
+    if (!body) continue
+    map[name] = { name, params, body, full: `${name}(${params}) = ${body}` }
+  }
+  funcs = Object.values(map)
+  saveFuncs()
+  renderFuncs()
+}
+
+// ── 괄호 정규화 ──────────────────────────────────────────────
+
+function normalizeBrackets() {
+  const OPEN = '([{', CLOSE = ')]}'
+  const O = ['(', '{', '['], C = [')', '}', ']']
+  const text = ta.value
+  // 1단계: 독립 괄호 그룹별 최대 깊이 계산
+  const localMax = new Array(text.length).fill(0)
+  let d = 0, gMax = 0
+  const gPos = []
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (OPEN.includes(ch)) {
+      if (d === 0) { gMax = 0; gPos.length = 0 }
+      d++
+      if (d > gMax) gMax = d
+      gPos.push(i)
+    } else if (CLOSE.includes(ch)) {
+      gPos.push(i)
+      if (d > 0) d--
+      if (d === 0) { for (const p of gPos) localMax[p] = gMax; gPos.length = 0 }
+    }
+  }
+  for (const p of gPos) localMax[p] = gMax
+  // 2단계: 그룹별 최대 깊이 기준으로 안쪽부터 () → {} → [] 변환
+  d = 0
+  const out = []
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (OPEN.includes(ch)) {
+      d++
+      out.push(O[(localMax[i] - d) % 3])
+    } else if (CLOSE.includes(ch)) {
+      out.push(C[(localMax[i] - d) % 3])
+      if (d > 0) d--
+    } else {
+      out.push(ch)
+    }
+  }
+  setVal(out.join(''), ta.selectionStart)
+}
+
+// ── 자동 괄호 (Space 트리거) ─────────────────────────────────
+
+function tryAutoParenSpace(word, before, after, cursor) {
+  const lo = word.toLowerCase()
+  const pre = before.slice(0, cursor - word.length)
+  if (lo === 'sqrt' || lo === 'root') { setVal(pre + '√(' + after, (pre + '√(').length); return true }
+  if (lo === 'int')  { setVal(pre + '∫(' + after, (pre + '∫(').length); return true }
+  if (lo === 'abs')  { const nb = pre + '| |'; setVal(nb + after, nb.length - 1); return true }
+  if (AUTO_PAREN_SPACE.has(lo)) { const nb = pre + word + '('; setVal(nb + after, nb.length); return true }
+  return false
+}
+
+// ── 자동 괄호 ( '(' 트리거 ) ─────────────────────────────────
+
+function tryAutoParenParen(word, before, after) {
+  const lo = word.toLowerCase()
+  if (lo === 'sqrt' || lo === 'root') { const nb = before.replace(/(?:sqrt|root)$/i, '√('); setVal(nb + after, nb.length); return true }
+  if (lo === 'int')  { const nb = before.replace(/int$/i, '∫(');  setVal(nb + after, nb.length); return true }
+  if (lo === 'abs')  { const nb = before.replace(/abs$/i, '| |'); setVal(nb + after, nb.length - 1); return true }
+  return false
+}
+
+// ── 단어 치환 (Space 트리거) ─────────────────────────────────
+
+function tryWordReplace(word, before, after, cursor) {
+  const repl = WORD_REPLACE[word] ?? WORD_REPLACE[word.toLowerCase()]
+  if (!repl) return false
+  const nb = before.slice(0, cursor - word.length) + repl
+  setVal(nb + ' ' + after, nb.length + 1)
+  return true
+}
+
+// ── 함수 문자 자동 괄호 (f, g, h, p, q + 프라임) ────────────
+
+function tryFuncLetterParen(before, after) {
+  const m = before.match(/(?:^|[^a-zA-Z])([a-zA-Z]['\u2019\u2032]{0,3})$/)
+  if (!m) return false
+  if (!FUNC_LETTERS.has(m[1][0])) return false
+  const nb = before + '('
+  setVal(nb + after, nb.length)
+  return true
+}
+
+// ── 자동완성 ─────────────────────────────────────────────────
+
+function checkAC() {
+  const { before } = getBeforeAfter()
+  const m = before.match(/([a-zA-Z][a-zA-Z0-9_]*)\($/)
+  if (m && funcs.length > 0) {
+    const lo = m[1].toLowerCase()
+    if (!AUTO_PAREN_SPACE.has(lo)) {
+      const matched = funcs.filter(fn => fn.name.toLowerCase() === lo)
+      if (matched.length > 0) { acItems = matched; acOpen = true; renderAC(); return }
+    }
+  }
+  if (acOpen) closeAC()
+}
+
+function applyAC(fn) {
+  const { before, after } = getBeforeAfter()
+  const nb = before.replace(/([a-zA-Z][a-zA-Z0-9_]*)\($/, () => fn.full + ' ')
+  setVal(nb + after, nb.length)
+  closeAC()
+}
+
+function closeAC() { acOpen = false; acItems = []; renderAC() }
+
+// ── 모드 ─────────────────────────────────────────────────────
+
+function setMode(m) {
+  mode = m
+  badge.textContent = m === 'sup' ? '↑ 위첨자' : m === 'sub' ? '↓ 아래첨자' : '일반'
+  badge.classList.toggle('is-active', m !== 'normal')
+}
+
+// ══════════════════════════════════════════════════════════════
+// 키보드 이벤트 (textarea)
+// ══════════════════════════════════════════════════════════════
+
+ta.addEventListener('keydown', (e) => {
+  // 캡처 중이면 document 핸들러가 처리
+  if (capturing) return
+
+  const { key, shiftKey } = e
+
+  if ((e.ctrlKey || e.metaKey) && key === 'z' && !e.shiftKey) { doUndo(e); return }
+  if (key === 'Tab' && acOpen && acItems.length > 0) { e.preventDefault(); applyAC(acItems[0]); return }
+  if (key === 'Escape') { closeAC(); return }
+  if (e.isComposing) return
+
+  // 커스텀 단축키로 모드 전환
+  if (matchesBinding(e, KB.sup)) { e.preventDefault(); setMode('sup'); return }
+  if (matchesBinding(e, KB.sub)) { e.preventDefault(); setMode('sub'); return }
+  if (key === 'Tab') { e.preventDefault(); setMode('normal'); return }
+
+  if (key === ' ') {
+    if (mode !== 'normal') setMode('normal')
+    const { cursor, before, after } = getBeforeAfter()
+    const word = lastWord(before)
+    if (word) {
+      if (tryAutoParenSpace(word, before, after, cursor)) { e.preventDefault(); return }
+      if (tryWordReplace(word, before, after, cursor))    { e.preventDefault(); return }
+    }
+    if (tryFuncLetterParen(before, after)) { e.preventDefault(); return }
+    return
+  }
+
+  if (key === '(') {
+    const { before, after } = getBeforeAfter()
+    const word = lastWord(before)
+    if (word && tryAutoParenParen(word, before, after)) { e.preventDefault(); return }
+    return
+  }
+
+  if (key === 'Enter') { if (mode !== 'normal') setMode('normal'); return }
+
+  if ((mode === 'sup' || mode === 'sub') && key.length === 1) {
+    if (e.ctrlKey || e.metaKey) return  // Ctrl/Cmd 단축키는 브라우저에 위임 (복사·붙여넣기 등)
+    const map = mode === 'sup' ? SUP : SUB_MAP
+    const mapped = map[key.toLowerCase()] ?? map[key]
+    if (mapped) { e.preventDefault(); insertAt(mapped) }
+  }
+})
+
+ta.addEventListener('input', (e) => {
+  if (e.isComposing) return
+  parseFuncs(ta.value); checkAC(); syncUI()
+})
+
+ta.addEventListener('compositionend', () => {
+  parseFuncs(ta.value); checkAC(); syncUI()
+})
+
+// ── UI 동기화 ────────────────────────────────────────────────
+
+function syncUI() {
+  const v = ta.value
+  bracketBtn.disabled = !v
+  copyBtn.disabled    = !v
+  copyStatus.textContent = v ? `${v.length} 글자` : '아직 내용이 없습니다'
+  updatePreview()
+}
+
+function updatePreview() {
+  const v = ta.value
+  if (!v) {
+    previewBody.innerHTML = '<span class="math-preview-placeholder">입력한 수학 풀이가 이 영역에 그대로 표시됩니다.</span>'
+    return
+  }
+  let header, footer
+  if (templateType === 'requestion') {
+    const n = $('requestionN')?.value || '2'
+    header = `${n} 번째 질문 답변 드리겠습니다.\n\n`
+    footer = `\n\n해당 질문과 관련하여 더 궁금한 점이 있으시다면 언제든 댓글로 재질문해 주시기 바랍니다 :)`
+  } else {
+    const sn = studentIn.value.trim() || '**'
+    const tn = taNameIn.value.trim()  || '***'
+    header = `안녕하세요 ${sn} 학생:) ${tn} 조교입니다.\n\n`
+    footer = `\n\n해당 질문과 관련하여 궁금한 점 있으시면 언제든 재질문 해주세요:)`
+  }
+  previewBody.innerHTML =
+    `<pre class="math-preview-text"><span class="math-preview-template">${esc(header)}</span><span class="math-preview-content">${esc(v)}</span><span class="math-preview-template">${esc(footer)}</span></pre>`
+}
+
+// ── 복사 (Clipboard API + file:// 폴백) ─────────────────────
+
+copyBtn.addEventListener('click', async () => {
+  if (!ta.value) return
+  const text = buildFinalText()
+  let ok = false
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try { await navigator.clipboard.writeText(text); ok = true } catch {}
+  }
+  if (!ok) {
+    try {
+      const tmp = document.createElement('textarea')
+      tmp.value = text
+      tmp.style.cssText = 'position:fixed;left:-9999px'
+      document.body.appendChild(tmp)
+      tmp.select()
+      ok = document.execCommand('copy')
+      document.body.removeChild(tmp)
+    } catch {}
+  }
+  copyStatus.textContent = ok ? '복사됨!' : '복사 실패 — 직접 선택하여 복사해주세요'
+  if (ok) setTimeout(() => {
+    if (copyStatus.textContent === '복사됨!') {
+      copyStatus.textContent = ta.value ? `${ta.value.length} 글자` : '아직 내용이 없습니다'
+    }
+  }, 1200)
+})
+
+bracketBtn.addEventListener('click', normalizeBrackets)
+
+// ══════════════════════════════════════════════════════════════
+// 렌더링
+// ══════════════════════════════════════════════════════════════
+
+function renderTabs() {
+  $('tabs').innerHTML = TAB_CONFIG.map(t =>
+    `<button type="button" class="math-editor-tab${t.id===activeTab?' is-active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('')
+}
+
+$('tabs').addEventListener('click', (e) => {
+  const id = e.target.dataset?.tab
+  if (!id) return
+  activeTab = id; renderTabs(); renderSymbols()
+})
+
+function renderSymbols() {
+  const tab = TAB_CONFIG.find(t => t.id === activeTab)
+  if (!tab) return
+  $('symbolGrid').innerHTML = tab.symbols.map(s =>
+    `<button type="button" class="math-symbol-button" data-sym="${esc(s)}">${s}</button>`
+  ).join('')
+}
+
+$('symbolGrid').addEventListener('click', (e) => {
+  const sym = e.target.dataset?.sym
+  if (sym) insertAt(sym)
+})
+
+function renderSnippets() {
+  $('snippets').innerHTML = SNIPPETS.map(s =>
+    `<button type="button" class="math-snippet-button" data-snip="${esc(s)}">${s}</button>`
+  ).join('')
+}
+
+$('snippets').addEventListener('click', (e) => {
+  const snip = e.target.dataset?.snip
+  if (snip) insertAt(snip)
+})
+
+function renderQuickGreek() {
+  $('quickGreek').innerHTML = QUICK_GREEK.map(s =>
+    `<button type="button" class="math-quick-button" data-sym="${s}">${s}</button>`
+  ).join('')
+}
+
+$('quickGreek').addEventListener('click', (e) => {
+  const sym = e.target.dataset?.sym
+  if (sym) insertAt(sym)
+})
+
+function renderFuncs() {
+  $('fnCount').textContent = `${funcs.length}개`
+  const body = $('fnBody')
+  if (funcs.length === 0) {
+    body.innerHTML = '<p class="math-functions-empty">f(x)= 형태로 입력하면 자동으로 저장됩니다.</p>'
+    return
+  }
+  body.innerHTML = '<ul class="math-functions-list">' +
+    funcs.map(fn =>
+      `<li class="math-function-item"><span class="math-function-def">${esc(fn.full)}</span><button type="button" class="math-function-remove" data-fn="${esc(fn.name)}">삭제</button></li>`
+    ).join('') + '</ul>'
+}
+
+$('fnBody').addEventListener('click', (e) => {
+  const name = e.target.dataset?.fn
+  if (!name) return
+  funcs = funcs.filter(f => f.name !== name); saveFuncs(); renderFuncs()
+})
+
+function renderAC() {
+  if (!acOpen || acItems.length === 0) {
+    acBox.classList.remove('is-open'); acBox.innerHTML = ''; return
+  }
+  acBox.innerHTML = acItems.map(fn =>
+    `<button type="button" class="math-autocomplete-item" data-acfn="${esc(fn.name)}"><span class="math-autocomplete-label">${esc(fn.name)}</span><span class="math-autocomplete-def">${esc(fn.full)}</span></button>`
+  ).join('')
+  acBox.classList.add('is-open')
+}
+
+acBox.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-acfn]')
+  if (!btn) return
+  const fn = acItems.find(f => f.name === btn.dataset.acfn)
+  if (fn) applyAC(fn)
+})
+
+$('guideToggle').addEventListener('click', () => {
+  const panel = $('guidePanel')
+  const open = panel.classList.toggle('is-open')
+  $('guideToggle').textContent = open ? '사용설명서 ▲' : '사용설명서 ▼'
+})
+
+// ── 초기화 ───────────────────────────────────────────────────
+
+loadKeybindings()
+loadWordReplace()
+loadFuncs()
+loadTemplate()
+applyTemplateType()
+renderTabs()
+renderSymbols()
+renderSnippets()
+renderQuickGreek()
+renderFuncs()
+renderKeybindings()
+renderWordReplace()
+syncUI()
+</script>
+</body>
+</html>
